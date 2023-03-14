@@ -28,6 +28,7 @@ impl<'a> Role<'a> {
         Self::Client { rt, handle }
     }
 
+    // 多个运行时
     pub(crate) fn simulated<F, Fut>(rt: Rt, software: F, handle: JoinHandle<Result>) -> Self
     where
         F: Fn() -> Fut + 'a,

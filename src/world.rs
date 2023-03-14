@@ -11,6 +11,8 @@ use std::time::Duration;
 /// Tracks all the state for the simulated world.
 pub(crate) struct World {
     /// Tracks all individual hosts
+    /// ip 地址到主机名的映射
+    /// hash 表
     pub(crate) hosts: IndexMap<IpAddr, Host>,
 
     /// Tracks how each host is connected to each other.
@@ -27,6 +29,7 @@ pub(crate) struct World {
     pub(crate) rng: Box<dyn RngCore>,
 }
 
+// 限制在一个线程中
 scoped_thread_local!(static CURRENT: RefCell<World>);
 
 impl World {
@@ -54,6 +57,7 @@ impl World {
     /// Used in drop paths, where the simulation may be shutting
     /// down and we don't need to do anything.
     pub(crate) fn current_if_set(f: impl FnOnce(&mut World)) {
+        // 如果CURRENT有设置过
         if CURRENT.is_set() {
             Self::current(f);
         }

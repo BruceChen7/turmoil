@@ -59,6 +59,7 @@ pub(crate) fn for_pairs(a: &Vec<IpAddr>, b: &Vec<IpAddr>, mut f: impl FnMut(IpAd
 ///
 /// Must be called from within a Turmoil simulation.
 pub fn lookup(addr: impl ToIpAddr) -> IpAddr {
+    // 通过主机名来获取ip地址
     World::current(|world| world.lookup(addr))
 }
 
@@ -66,6 +67,7 @@ pub fn lookup(addr: impl ToIpAddr) -> IpAddr {
 ///
 /// Must be called from within a Turmoil simulation.
 pub fn lookup_many(addr: impl ToIpAddrs) -> Vec<IpAddr> {
+    // 名字空间的调用
     World::current(|world| world.lookup_many(addr))
 }
 
@@ -104,6 +106,7 @@ pub fn release(a: impl ToIpAddrs, b: impl ToIpAddrs) {
 /// Must be called from within a Turmoil simulation.
 pub fn partition(a: impl ToIpAddrs, b: impl ToIpAddrs) {
     World::current(|world| {
+        // 两个主机之间网络隔离
         let a = world.lookup_many(a);
         let b = world.lookup_many(b);
 

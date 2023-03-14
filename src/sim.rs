@@ -18,6 +18,7 @@ pub struct Sim<'a> {
     /// Tracks the simulated world state
     ///
     /// This is what is stored in the thread-local
+    /// 单线程使用，不能多线程使用
     world: RefCell<World>,
 
     /// Per simulated host runtimes
@@ -87,12 +88,15 @@ impl<'a> Sim<'a> {
     /// [`Sim::client`] which just takes a future. The reason for this is we
     /// might restart the host, and so need to be able to call the future
     /// multiple times.
+    /// addr 是一个socket addr 或者是ip地址
     pub fn host<F, Fut>(&mut self, addr: impl ToIpAddr, host: F)
     where
         F: Fn() -> Fut + 'a,
         Fut: Future<Output = Result> + 'static,
     {
+        // 新建一个运行时
         let rt = Rt::new();
+        // 根据主机名来获取ip地址
         let addr = self.lookup(addr);
 
         {
@@ -104,6 +108,7 @@ impl<'a> Sim<'a> {
 
         let handle = World::enter(&self.world, || rt.with(|| tokio::task::spawn_local(host())));
 
+        // 插入一个模拟
         self.rts.insert(addr, Role::simulated(rt, host, handle));
     }
 
@@ -274,6 +279,7 @@ impl<'a> Sim<'a> {
         // IO. (It also might be waiting on something else, such as time.)
         self.world.borrow_mut().topology.tick_by(tick);
 
+        // 多个runtime
         for (&addr, rt) in self.rts.iter() {
             {
                 let mut world = self.world.borrow_mut();
@@ -285,9 +291,12 @@ impl<'a> Sim<'a> {
                     hosts,
                     ..
                 } = world.deref_mut();
+
+                // 转发消息, 用来驱动整个系统的模拟
                 topology.deliver_messages(rng, hosts.get_mut(&addr).expect("missing host"));
 
                 // Set the current host (see method docs)
+                // 当前运行的主机
                 world.current = Some(addr);
 
                 world.current_host_mut().now(rt.now());
@@ -316,6 +325,7 @@ impl<'a> Sim<'a> {
             }
         }
 
+        // 消耗的tick
         self.elapsed += tick;
 
         // Check finished clients and hosts for err results. Runtimes are removed
@@ -337,6 +347,7 @@ impl<'a> Sim<'a> {
         }
 
         if self.elapsed > self.config.duration && !is_finished {
+            // 机房错误
             return Err(format!(
                 "Ran for {:?} without completing",
                 self.config.duration
@@ -550,6 +561,7 @@ mod test {
         let mut sim = Builder::new().build();
 
         sim.host("a", || async {
+            // 绑定通用端口
             let l = TcpListener::bind("0.0.0.0:1234").await?;
 
             _ = l.accept().await?;

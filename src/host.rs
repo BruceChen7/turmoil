@@ -19,6 +19,7 @@ use tokio::time::{Duration, Instant};
 ///
 /// Both modes may be used simultaneously.
 pub(crate) struct Host {
+    // 主机由tcp和udp定义
     /// Host ip address.
     pub(crate) addr: IpAddr,
 
@@ -101,7 +102,9 @@ impl Host {
         tracing::trace!(target: TRACING_TARGET, ?dst, ?src, protocol = %message, "Delivered");
 
         match message {
+            // 收到消息
             Protocol::Tcp(segment) => self.tcp.receive_from_network(src, dst, segment),
+            // 收到udp报文
             Protocol::Udp(datagram) => {
                 self.udp.receive_from_network(src, dst, datagram);
                 Ok(())
@@ -209,6 +212,7 @@ struct StreamSocket {
 /// layer.
 #[derive(Debug)]
 pub(crate) enum SequencedSegment {
+    // 字节流
     Data(Bytes),
     Fin,
 }
@@ -338,6 +342,7 @@ impl Tcp {
                     b.notify.notify_one();
                 }
             }
+            // 数据segment
             Segment::Data(seq, data) => match self.sockets.get_mut(&SocketPair::new(dst, src)) {
                 Some(sock) => sock.buffer(seq, SequencedSegment::Data(data))?,
                 None => return Err(Protocol::Tcp(Segment::Rst)),
@@ -362,6 +367,7 @@ impl Tcp {
         if let Some(sock) = self.sockets.get_mut(&pair) {
             sock.ref_ct -= 1;
 
+            // 计数为0
             if sock.ref_ct == 0 {
                 self.sockets.remove(&pair).unwrap();
             }

@@ -23,6 +23,7 @@ fn assert_error_kind<T>(res: io::Result<T>, kind: io::ErrorKind) {
 }
 
 async fn bind() -> std::result::Result<TcpListener, std::io::Error> {
+    // 0.0.0.0: 1738
     TcpListener::bind((IpAddr::from(Ipv4Addr::UNSPECIFIED), PORT)).await
 }
 
@@ -30,6 +31,7 @@ async fn bind() -> std::result::Result<TcpListener, std::io::Error> {
 fn network_partitions_during_connect() -> Result {
     let mut sim = Builder::new().build();
 
+    // 创建一个节点
     sim.host("server", || async {
         let listener = bind().await?;
         loop {
@@ -37,9 +39,12 @@ fn network_partitions_during_connect() -> Result {
         }
     });
 
+    // client 和 server 创建一个网络分区
     sim.client("client", async {
+        // 创建一个网络分区
         turmoil::partition("client", "server");
 
+        // 保证错误式连接拒绝
         assert_error_kind(
             TcpStream::connect(("server", PORT)).await,
             io::ErrorKind::ConnectionRefused,
@@ -57,6 +62,7 @@ fn network_partitions_during_connect() -> Result {
         Ok(())
     });
 
+    // 运行模拟
     sim.run()
 }
 

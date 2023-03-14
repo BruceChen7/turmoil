@@ -5,8 +5,11 @@ use tokio::sync::oneshot;
 
 #[derive(Debug)]
 pub(crate) struct Envelope {
+    // 源地址
     pub(crate) src: SocketAddr,
+    // 目的地址
     pub(crate) dst: SocketAddr,
+    // upp 还是tcp
     pub(crate) message: Protocol,
 }
 

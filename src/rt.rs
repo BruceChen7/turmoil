@@ -21,6 +21,7 @@ pub(crate) struct Rt {
 
 impl Rt {
     pub(crate) fn new() -> Self {
+        // 初始化runtime
         let (tokio, local) = init();
         Self { tokio, local }
     }
@@ -34,6 +35,7 @@ impl Rt {
     }
 
     pub(crate) fn now(&self) -> Instant {
+        // 获取tokio runtime
         let _guard = self.tokio.enter();
         Instant::now()
     }
@@ -83,6 +85,7 @@ impl Rt {
 }
 
 fn init() -> (Runtime, LocalSet) {
+    // 创建一个新的runtime
     let mut builder = tokio::runtime::Builder::new_current_thread();
 
     #[cfg(tokio_unstable)]

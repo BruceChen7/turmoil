@@ -5,6 +5,7 @@ use std::net::{IpAddr, SocketAddr};
 
 pub struct Dns {
     next: u16,
+    // hash table
     names: IndexMap<String, IpAddr>,
 }
 
@@ -53,6 +54,7 @@ impl ToIpAddr for String {
     }
 }
 
+// 对字符串也实现了toIpaddr
 impl<'a> ToIpAddr for &'a str {
     fn to_ip_addr(&self, dns: &mut Dns) -> IpAddr {
         *dns.names.entry(self.to_string()).or_insert_with(|| {
@@ -62,6 +64,7 @@ impl<'a> ToIpAddr for &'a str {
             let a = (host >> 8) as u8;
             let b = (host & 0xFF) as u8;
 
+            // 插入一条ipv4的地址
             std::net::Ipv4Addr::new(127, 0, a, b).into()
         })
     }

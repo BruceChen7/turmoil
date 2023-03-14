@@ -18,18 +18,21 @@ use proto::{HelloReply, HelloRequest};
 use crate::proto::greeter_client::GreeterClient;
 
 fn main() {
+    // 环境变量，设置log级别
     if std::env::var("RUST_LOG").is_err() {
         std::env::set_var("RUST_LOG", "info");
     }
 
     tracing_subscriber::fmt::init();
 
+    // 注册一个host
     let addr = (IpAddr::from(Ipv4Addr::UNSPECIFIED), 9999);
 
     let mut sim = Builder::new().build();
 
     let greeter = GreeterServer::new(MyGreeter {});
 
+    // server端
     sim.host("server", move || {
         let greeter = greeter.clone();
         async move {
@@ -54,6 +57,7 @@ fn main() {
         .instrument(info_span!("server"))
     });
 
+    // 客户端
     sim.client(
         "client",
         async move {
@@ -64,8 +68,10 @@ fn main() {
             let uri = Uri::from_static("http://server:9999");
             let mut greeter_client = GreeterClient::with_origin(svc, uri);
 
+            // 设置rpc请求
             let request = Request::new(HelloRequest { name: "foo".into() });
 
+            // 等待结果
             let res = greeter_client.say_hello(request).await?;
 
             tracing::info!("Got response: {:?}", res);
@@ -78,6 +84,7 @@ fn main() {
     sim.run().unwrap();
 }
 
+// rpc server
 #[derive(Default)]
 pub struct MyGreeter {}
 

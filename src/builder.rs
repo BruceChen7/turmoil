@@ -24,6 +24,7 @@ impl Builder {
             rng: None,
             config: Config::default(),
             link: config::Link {
+                // 默认的网络延迟
                 latency: Some(config::Latency::default()),
                 message_loss: Some(config::MessageLoss::default()),
             },

@@ -38,6 +38,7 @@ impl TcpListener {
             // Unspecified -> host's IP
             addr.set_ip(host.addr);
 
+            // 绑定主机的ip
             host.tcp.bind(addr)
         })
     }
@@ -74,6 +75,7 @@ impl TcpListener {
                 return Ok(accepted);
             }
 
+            // 接收通知
             self.notify.notified().await;
         }
     }

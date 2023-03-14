@@ -16,6 +16,7 @@ pub(crate) struct Topology {
     config: config::Link,
 
     /// Specific configuration overrides between specific hosts.
+    /// 连接拓扑
     links: IndexMap<Pair, Link>,
 
     /// We don't use a Rt for async. Right now, we just use it to tick time
@@ -132,6 +133,7 @@ impl<'a> Iterator for LinkIter<'a> {
 
 /// A two-way link between two hosts on the network.
 struct Link {
+    // 表示两个链接之间可能出现的状态
     state: State,
 
     /// Optional, per-link configuration.
@@ -217,6 +219,7 @@ impl Topology {
         dst: SocketAddr,
         message: Protocol,
     ) {
+        // 获取源地址和目标地址
         let link = &mut self.links[&Pair::new(src.ip(), dst.ip())];
         link.enqueue_message(&self.config, rand, src, dst, message);
     }
@@ -239,6 +242,7 @@ impl Topology {
     }
 
     pub(crate) fn partition(&mut self, a: IpAddr, b: IpAddr) {
+        // 手动的进行网络隔离
         self.links[&Pair::new(a, b)].explicit_partition();
     }
 
@@ -330,6 +334,7 @@ impl Link {
             _ => {
                 tracing::trace!(target: TRACING_TARGET,?src, ?dst, protocol = %message, "Drop");
 
+                // 直接丢弃
                 return;
             }
         };

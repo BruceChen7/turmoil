@@ -58,6 +58,7 @@ impl TcpStream {
 
         let (pair, rx) = World::current(|world| {
             let dst = addr.to_socket_addr(&world.dns);
+            // 发送sync segment
             let syn = Segment::Syn(Syn { ack });
 
             let host = world.current_host_mut();
@@ -65,11 +66,13 @@ impl TcpStream {
 
             let pair = SocketPair::new(local_addr, dst);
             let rx = host.tcp.new_stream(pair);
+            //  world 代理了发送消息， 发送sync segment
             world.send_message(local_addr, dst, Protocol::Tcp(syn));
 
             (pair, rx)
         });
 
+        // await失败，返回连接失败
         syn_ack.await.map_err(|_| {
             io::Error::new(io::ErrorKind::ConnectionRefused, pair.remote.to_string())
         })?;
@@ -133,9 +136,11 @@ impl ReadHalf {
                 tracing::trace!(target: TRACING_TARGET, dst = ?self.pair.local, src = ?self.pair.remote, protocol = %seg, "Recv");
 
                 match seg {
+                    // 获取sequenceSegment
                     SequencedSegment::Data(bytes) => {
                         buf.put_slice(bytes.as_ref());
                     }
+                    // fin segment
                     SequencedSegment::Fin => {
                         self.is_closed = true;
                     }
@@ -236,6 +241,7 @@ impl Debug for WriteHalf {
     }
 }
 
+// 用来实现异步读
 impl AsyncRead for ReadHalf {
     fn poll_read(
         mut self: Pin<&mut Self>,
@@ -291,6 +297,7 @@ impl AsyncWrite for TcpStream {
 impl Drop for ReadHalf {
     fn drop(&mut self) {
         World::current_if_set(|world| {
+            // 用来关闭相关的连接
             world.current_host_mut().tcp.close_stream_half(*self.pair);
         })
     }

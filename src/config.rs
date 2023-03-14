@@ -4,6 +4,7 @@ use std::time::{Duration, SystemTime};
 #[derive(Clone)]
 pub(crate) struct Config {
     /// How long the test should run for
+    /// 这个测试需要执行的时间
     pub(crate) duration: Duration,
 
     /// How much simulated time should elapse each tick
@@ -16,6 +17,7 @@ pub(crate) struct Config {
 /// Configures link behavior.
 #[derive(Clone, Default)]
 pub(crate) struct Link {
+    // 链接的定义
     /// Message latency between two hosts
     pub(crate) latency: Option<Latency>,
 
@@ -40,9 +42,11 @@ pub(crate) struct Latency {
 #[derive(Clone)]
 pub(crate) struct MessageLoss {
     /// Probability of a link failing
+    /// 失败率
     pub(crate) fail_rate: f64,
 
     /// Probability of a failed link returning
+    /// 修复率
     pub(crate) repair_rate: f64,
 }
 
