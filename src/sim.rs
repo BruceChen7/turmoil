@@ -77,6 +77,7 @@ impl<'a> Sim<'a> {
             world.register(addr);
         }
 
+        // 产生local task, 是一个futrue
         let handle = World::enter(&self.world, || rt.with(|| tokio::task::spawn_local(client)));
 
         self.rts.insert(addr, Role::client(rt, handle));
@@ -149,6 +150,7 @@ impl<'a> Sim<'a> {
 
             self.world.borrow_mut().current = Some(h);
 
+            // 闭包
             World::enter(&self.world, || f(h, rt));
         }
 
@@ -302,6 +304,7 @@ impl<'a> Sim<'a> {
                 world.current_host_mut().now(rt.now());
             }
 
+            // 设置world
             World::enter(&self.world, || rt.tick(tick));
 
             // Unset the current host

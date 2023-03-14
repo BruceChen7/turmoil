@@ -31,6 +31,7 @@ impl Rt {
     }
 
     pub(crate) fn with<R>(&self, f: impl FnOnce() -> R) -> R {
+        // 等待future完成
         self.block_on(async { self.local.run_until(async { f() }).await })
     }
 
@@ -85,7 +86,7 @@ impl Rt {
 }
 
 fn init() -> (Runtime, LocalSet) {
-    // 创建一个新的runtime
+    // 创建一个新的builder
     let mut builder = tokio::runtime::Builder::new_current_thread();
 
     #[cfg(tokio_unstable)]

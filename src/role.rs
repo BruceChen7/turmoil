@@ -53,6 +53,7 @@ impl<'a> Role<'a> {
     }
 
     pub(crate) fn tick(&self, duration: Duration) {
+        // 获取运行时
         let rt = match self {
             Role::Client { rt, .. } => rt,
             Role::Simulated { rt, .. } => rt,

@@ -39,6 +39,7 @@ impl World {
             hosts: IndexMap::new(),
             topology: Topology::new(link),
             dns: Dns::new(),
+            // 正在被执行的节点
             current: None,
             rng,
         }
@@ -46,8 +47,10 @@ impl World {
 
     /// Run `f` on the world.
     pub(crate) fn current<R>(f: impl FnOnce(&mut World) -> R) -> R {
+        // 用来获取当前的word
         CURRENT.with(|current| {
             let mut current = current.borrow_mut();
+            // 开始执行
             f(&mut current)
         })
     }
@@ -63,6 +66,7 @@ impl World {
         }
     }
 
+    // 第一次设置CURRENT
     pub(crate) fn enter<R>(world: &RefCell<World>, f: impl FnOnce() -> R) -> R {
         CURRENT.set(world, f)
     }

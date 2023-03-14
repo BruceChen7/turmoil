@@ -2,6 +2,7 @@ use std::{
     io,
     net::{IpAddr, Ipv4Addr},
     rc::Rc,
+    thread,
     time::Duration,
 };
 
@@ -31,18 +32,25 @@ async fn bind() -> std::result::Result<TcpListener, std::io::Error> {
 fn network_partitions_during_connect() -> Result {
     let mut sim = Builder::new().build();
 
+    std::env::set_var("RUST_LOG", "debug");
+
     // 创建一个节点
     sim.host("server", || async {
         let listener = bind().await?;
         loop {
+            let id = thread::current().id();
+            tracing::info!("server thread id: {:?}", id);
             let _ = listener.accept().await;
         }
     });
 
     // client 和 server 创建一个网络分区
+    // 在同一个thread中有不同的运行时
     sim.client("client", async {
         // 创建一个网络分区
         turmoil::partition("client", "server");
+        let id = thread::current().id();
+        tracing::info!("client thread id: {:?}", id);
 
         // 保证错误式连接拒绝
         assert_error_kind(
