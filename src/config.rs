@@ -53,7 +53,9 @@ pub(crate) struct MessageLoss {
 impl Default for Config {
     fn default() -> Config {
         Config {
+            // 默认执行10s
             duration: Duration::from_secs(10),
+            // tick 是1ms
             tick: Duration::from_millis(1),
             epoch: SystemTime::now(),
         }

@@ -251,6 +251,7 @@ impl Topology {
     }
 
     pub(crate) fn tick_by(&mut self, duration: Duration) {
+        // runtime 每tikc开始唤醒，执行
         self.rt.tick(duration);
         for link in self.links.values_mut() {
             link.tick(self.rt.now());
