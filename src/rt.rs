@@ -59,6 +59,12 @@ impl Rt {
     // 3. Other tasks on the `LocalSet` get a chance to run
     // 4. The sleep finishes
     // 5. The runtime pauses
+    // 每当调用“tick”时，就会按照以下方式展开：
+    // 时间在运行时前进
+    // 我们安排一个简单的休眠任务
+    // 其他任务在“LocalSet”上有机会运行
+    // 休眠完成
+    // 运行时暂停
     pub(crate) fn tick(&self, duration: Duration) {
         self.block_on(async {
             self.local
