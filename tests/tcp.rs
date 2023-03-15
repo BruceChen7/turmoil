@@ -33,6 +33,7 @@ fn network_partitions_during_connect() -> Result {
     let mut sim = Builder::new().build();
 
     std::env::set_var("RUST_LOG", "debug");
+    tracing_subscriber::fmt::init();
 
     // 创建一个节点
     sim.host("server", || async {
@@ -584,6 +585,61 @@ fn write_zero_bytes() -> Result {
     });
 
     sim.run()
+}
+
+#[test]
+fn test_localset() {
+    std::env::set_var("RUST_LOG", "debug");
+    // tracing_subscriber::fmt::init();
+    tracing::info!("spawn_local");
+    let mut rt_builder = tokio::runtime::Builder::new_current_thread();
+    let rt1 = rt_builder.enable_all().build().unwrap();
+    // let rt2 = rt_builder.enable_all().build().unwrap();
+    rt1.block_on(async {
+        tokio::time::sleep(Duration::from_millis(1)).await;
+    });
+
+    let local1 = tokio::task::LocalSet::new();
+    let local2 = tokio::task::LocalSet::new();
+
+    let f1 = async {
+        let i = 3;
+        let mut cnt1 = 0;
+        loop {
+            tracing::info!("f1, {:?}", cnt1);
+            tracing::info!("Task 1 running");
+            cnt1 += 1;
+            if cnt1 == i {
+                break;
+            }
+            tokio::time::sleep(Duration::from_secs(1)).await;
+        }
+    };
+
+    let f2 = async {
+        let i = 3;
+        let mut cnt = 0;
+        loop {
+            // 输出不及预期
+            tracing::info!("f2 Task 2 running");
+            tracing::info!("f2 {:?}", cnt);
+            cnt += 1;
+            if cnt == i {
+                break;
+            }
+            tokio::time::sleep(Duration::from_secs(1)).await;
+        }
+    };
+
+    // Spawn a future on the local set. This future will be run when
+    // we call `run_until` to drive the task set.
+    local1.spawn_local(f1);
+    local2.spawn_local(f2);
+
+    // 等待local1 过来
+    rt1.block_on(local1);
+    // 等待local2 结束
+    rt1.block_on(local2);
 }
 
 #[test]
