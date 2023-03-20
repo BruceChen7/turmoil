@@ -66,6 +66,8 @@ impl TcpStream {
 
             let pair = SocketPair::new(local_addr, dst);
             let rx = host.tcp.new_stream(pair);
+
+            tracing::info!("connecting to {dst}, {local_addr}");
             //  world 代理了发送消息， 发送sync segment
             world.send_message(local_addr, dst, Protocol::Tcp(syn));
 

@@ -35,6 +35,8 @@ impl TcpListener {
                 panic!("{addr} is not supported");
             }
 
+            tracing::info!("binding to {addr}");
+
             // Unspecified -> host's IP
             addr.set_ip(host.addr);
 
@@ -50,8 +52,11 @@ impl TcpListener {
     /// address will be returned.
     pub async fn accept(&self) -> Result<(TcpStream, SocketAddr)> {
         loop {
+            //
+            // 模拟主机接收到tcp连接
             let maybe_accept = World::current(|world| {
                 let host = world.current_host_mut();
+                // 从队列中获取一个连接
                 let (syn, origin) = host.tcp.accept(self.local_addr)?;
 
                 tracing::trace!(target: TRACING_TARGET, dst = ?origin, src = ?self.local_addr, protocol = %"TCP SYN", "Recv");
@@ -60,7 +65,9 @@ impl TcpListener {
                 // else we return early to avoid host mutations.
                 let ack = syn.ack.send(());
                 tracing::trace!(target: TRACING_TARGET, src = ?self.local_addr, dst = ?origin, protocol = %"TCP SYN-ACK", "Send");
+                tracing::info!(target: TRACING_TARGET, src = ?self.local_addr, dst = ?origin, protocol = %"TCP SYN-ACK", "Sent");
 
+                // 出现错误
                 if ack.is_err() {
                     return None;
                 }
@@ -75,7 +82,7 @@ impl TcpListener {
                 return Ok(accepted);
             }
 
-            // 接收通知
+            // 没有收到tcp连接，等待一段时间
             self.notify.notified().await;
         }
     }

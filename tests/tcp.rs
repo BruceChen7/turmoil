@@ -33,7 +33,15 @@ fn network_partitions_during_connect() -> Result {
     let mut sim = Builder::new().build();
 
     std::env::set_var("RUST_LOG", "debug");
-    tracing_subscriber::fmt::init();
+    tracing_subscriber::fmt()
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .with_thread_names(true)
+        .with_thread_ids(true)
+        .with_target(false)
+        .with_ansi(false)
+        .with_file(true)
+        .with_line_number(true)
+        .init();
 
     // 创建一个节点
     // 必须先host， 然后client

@@ -68,6 +68,7 @@ impl Host {
         self.elapsed + run_duration
     }
 
+    // 设置临时端口
     pub(crate) fn assign_ephemeral_port(&mut self) -> u16 {
         // Check for existing binds to avoid port conflicts
         loop {
@@ -143,6 +144,7 @@ impl Udp {
         }
     }
 
+    // 端口被占用
     fn is_port_assigned(&self, port: u16) -> bool {
         self.binds.keys().any(|a| a.port() == port)
     }
@@ -305,8 +307,10 @@ impl Tcp {
     }
 
     pub(crate) fn new_stream(&mut self, pair: SocketPair) -> mpsc::Receiver<SequencedSegment> {
+        // 新建stream socket
         let (sock, rx) = StreamSocket::new(pair.local, self.socket_capacity);
 
+        // 插入到sockets中
         let exists = self.sockets.insert(pair, sock);
 
         assert!(exists.is_none(), "{pair:?} is already connected");
@@ -341,6 +345,7 @@ impl Tcp {
                     }
 
                     b.deque.push_back((syn, src));
+                    // 通知可能出现accepet
                     b.notify.notify_one();
                 }
             }
@@ -391,6 +396,7 @@ mod test {
 
     #[test]
     fn recycle_ports() -> Result {
+        // 绑定通用端口
         let mut host = Host::new(std::net::Ipv4Addr::UNSPECIFIED.into());
 
         host.udp.bind((host.addr, 65534).into())?;
