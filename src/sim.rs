@@ -71,6 +71,7 @@ impl<'a> Sim<'a> {
         let addr = self.lookup(addr);
 
         {
+            // 获取当前的word
             let world = RefCell::get_mut(&mut self.world);
 
             // Register host state with the world
@@ -311,6 +312,7 @@ impl<'a> Sim<'a> {
             let mut world = self.world.borrow_mut();
             world.current = None;
 
+            // 更新tick
             world.tick(addr, tick);
 
             match rt {
@@ -320,8 +322,10 @@ impl<'a> Sim<'a> {
                     }
                     is_finished = is_finished && handle.is_finished();
                 }
+                // 如果回调是否结束
                 Role::Simulated { handle, .. } => {
                     if handle.is_finished() {
+                        // 输入task 结束
                         finished.push(addr);
                     }
                 }
@@ -334,6 +338,7 @@ impl<'a> Sim<'a> {
         // Check finished clients and hosts for err results. Runtimes are removed
         // at this stage.
         for addr in finished.into_iter() {
+            // 从rts vec中删除
             if let Some(role) = self.rts.remove(&addr) {
                 let (rt, handle) = match role {
                     Role::Client { rt, handle } => (rt, handle),

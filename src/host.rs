@@ -288,11 +288,13 @@ impl Tcp {
 
     pub(crate) fn bind(&mut self, addr: SocketAddr) -> io::Result<TcpListener> {
         let notify = Arc::new(Notify::new());
+        // 新建server socket
         let sock = ServerSocket {
             notify: notify.clone(),
             deque: VecDeque::new(),
         };
 
+        // 如果存在
         if self.binds.insert(addr, sock).is_some() {
             return Err(io::Error::new(io::ErrorKind::AddrInUse, addr.to_string()));
         }

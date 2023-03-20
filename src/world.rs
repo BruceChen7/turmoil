@@ -115,6 +115,7 @@ impl World {
         }
 
         // Initialize host state
+        // 主机插入
         self.hosts.insert(addr, Host::new(addr));
     }
 
@@ -127,6 +128,7 @@ impl World {
 
     /// Tick the host at `addr` by `duration`.
     pub(crate) fn tick(&mut self, addr: IpAddr, duration: Duration) {
+        // 更新主机elapsed tick
         self.hosts
             .get_mut(&addr)
             .expect("missing host")

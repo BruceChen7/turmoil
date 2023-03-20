@@ -57,6 +57,7 @@ impl Default for Config {
             duration: Duration::from_secs(10),
             // tick 是1ms
             tick: Duration::from_millis(1),
+
             epoch: SystemTime::now(),
         }
     }

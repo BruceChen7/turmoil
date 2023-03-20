@@ -36,17 +36,23 @@ fn network_partitions_during_connect() -> Result {
     tracing_subscriber::fmt::init();
 
     // 创建一个节点
+    // 必须先host， 然后client
+    // IndexMap<String, String> 是按照插入顺序排序的
+    // sim.host 必须先调用
     sim.host("server", || async {
+        // listener
         let listener = bind().await?;
         loop {
             let id = thread::current().id();
             tracing::info!("server thread id: {:?}", id);
+            // accept
             let _ = listener.accept().await;
         }
     });
 
     // client 和 server 创建一个网络分区
     // 在同一个thread中有不同的运行时
+    // 是一个Future
     sim.client("client", async {
         // 创建一个网络分区
         turmoil::partition("client", "server");

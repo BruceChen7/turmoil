@@ -19,6 +19,7 @@ pub(crate) enum Role<'a> {
     Simulated {
         rt: Rt,
         software: Software<'a>,
+        // task 回调
         handle: JoinHandle<Result>,
     },
 }
